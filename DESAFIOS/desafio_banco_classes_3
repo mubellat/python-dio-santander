@@ -1,0 +1,141 @@
+from abc import ABC, abstractmethod        # ABC = classe abstrata; abstractmethod = método obrigatório
+from datetime import datetime              # para registrar data/hora das transações
+
+
+class Historico:
+    def __init__(self):                    # construtor do histórico
+        self.transacoes = []               # lista de transações (strings ou objetos, aqui usaremos strings)
+
+    def adicionar_transacao(self, transacao):  # adiciona uma transação ao histórico
+        self.transacoes.append(transacao)      # apenas empilha na lista; exibição fica por conta do método exibir()
+
+    def exibir(self):                      # imprime o histórico no console
+        for t in self.transacoes:          # percorre cada transação registrada
+            print(t)                       # imprime a linha da transação
+
+
+class Cliente:
+    def __init__(self, endereco):          # construtor recebe apenas o endereço aqui
+        self.endereco = endereco           # endereço do cliente
+        self.contas = []                   # um cliente pode ter várias contas → lista de objetos Conta
+
+    def adicionar_conta(self, conta):      # associa uma conta a este cliente
+        self.contas.append(conta)          # adiciona a conta na lista interna
+
+    def realizar_transacao(self, conta, transacao):  # executa uma transação em uma conta do cliente
+        transacao.registrar(conta)         # delega para o objeto Transacao (polimorfismo: Saque/Deposito)
+
+
+class PessoaFisica(Cliente):
+    def __init__(self, nome, cpf, data_nascimento, endereco):  # construtor com dados de PF
+        super().__init__(endereco)          # inicializa a parte de Cliente (endereço e lista de contas)
+        self.nome = nome                    # nome completo
+        self.cpf = cpf                      # CPF (string para manter zeros à esquerda)
+        self.data_nascimento = data_nascimento  # data de nascimento (string simples ou datetime)
+
+
+class Conta:
+    def __init__(self, numero, cliente):   # construtor da conta recebe número e o objeto cliente
+        self.saldo = 0.0                   # saldo começa em 0.0
+        self.numero = numero               # número da conta (int)
+        self.agencia = "0001"              # agência padrão, conforme seu projeto
+        self.cliente = cliente             # referência ao titular (objeto PessoaFisica/Cliente)
+        self.historico = Historico()       # cada conta mantém seu próprio histórico
+
+    def __str__(self):                     # representação amigável quando der print(conta)
+        return f"Agência: {self.agencia} | Conta: {self.numero} | Titular: {self.cliente.nome}"
+
+    @classmethod                           # método de fábrica: cria uma nova conta do tipo da classe concreta
+    def nova_conta(cls, cliente, numero):  # recebe a classe (cls), o cliente e o número
+        return cls(numero, cliente)        # retorna uma instância de cls (pode ser ContaCorrente, por ex.)
+
+    def sacar(self, valor):                # operação de saque (regra base)
+        if valor > self.saldo:             # valida: não pode sacar mais do que tem
+            print("Saldo insuficiente.")   # feedback de erro
+            return False                   # falha (não efetiva)
+        if valor <= 0:                     # valida: valor precisa ser positivo
+            print("Valor inválido.")       # feedback de erro
+            return False                   # falha (não efetiva)
+
+        self.saldo -= valor                # debita do saldo
+        print(f"Saque de R$ {valor:.2f} realizado com sucesso.")  # feedback de sucesso
+        return True                        # sucesso (efetivado)
+
+    def depositar(self, valor):            # operação de depósito
+        if valor <= 0:                     # valida: não aceita zero/negativo
+            print("Valor inválido para depósito.")  # feedback
+            return False                   # falha
+        self.saldo += valor                # credita no saldo
+        print(f"Depósito de R$ {valor:.2f} realizado com sucesso.")  # feedback
+        return True                        # sucesso
+
+class ContaCorrente(Conta):
+    def __init__(self, numero, cliente, limite=500, limite_saques=3):  # construtor com limites configuráveis
+        super().__init__(numero, cliente)   # inicializa a parte base (Conta)
+        self.limite = limite                # limite por operação de saque
+        self.limite_saques = limite_saques  # limite de quantidade de saques/dia (simples)
+        self.numero_saques = 0              # contador de saques realizados com sucesso
+
+    def sacar(self, valor):                 # sobrescreve o saque para aplicar regras de CC
+        if self.numero_saques >= self.limite_saques:  # checa limite de quantidade de saques
+            print("Limite de saques diários alcançado.")  # feedback
+            return False                    # bloqueia
+
+        if valor > self.limite:             # checa limite por valor de saque
+            print("Valor excede o limite permitido.")  # feedback
+            return False                    # bloqueia
+
+        sucesso = super().sacar(valor)      # delega a validação de saldo e débito para Conta.sacar()
+        if sucesso:                         # se o saque realmente aconteceu
+            self.numero_saques += 1         # incrementa o contador de saques do dia
+        return sucesso                      # retorna True/False para quem chamou
+
+
+class Transacao(ABC):                       # define a “interface” de uma transação
+    @abstractmethod                         # obriga subclasses a implementarem registrar()
+    def registrar(self, conta):             # conta alvo da operação
+        pass                                # sem implementação aqui (abstrato)
+
+
+class Deposito(Transacao):
+    def __init__(self, valor):              # construtor recebe o valor do depósito
+        self.valor = valor                  # guarda o valor internamente
+
+    def registrar(self, conta):             # executa a transação na conta
+        if conta.depositar(self.valor):     # tenta depositar; se sucesso:
+            conta.historico.adicionar_transacao(  # registra uma linha no histórico da conta
+                f"Depósito de R$ {self.valor:.2f} em {datetime.now()}"
+            )
+
+
+class Saque(Transacao):
+    def __init__(self, valor):              # construtor recebe o valor do saque
+        self.valor = valor                  # guarda o valor internamente
+
+    def registrar(self, conta):             # executa a transação na conta
+        if conta.sacar(self.valor):         # tenta sacar; se sucesso:
+            conta.historico.adicionar_transacao(  # registra no histórico
+                f"Saque de R$ {self.valor:.2f} em {datetime.now()}"
+            )
+
+
+if __name__ == "__main__":                      # proteção para só rodar este bloco quando for o script principal
+    cliente1 = PessoaFisica(                    # cria um cliente PF com dados básicos
+        nome="João Silva",                      # nome do titular
+        cpf="12345678900",                      # CPF (string)
+        data_nascimento="01-01-1990",           # data (string simples)
+        endereco="Rua A, 123"                   # endereço
+    )
+
+    conta1 = ContaCorrente.nova_conta(cliente1, 1)  # cria uma conta corrente (método de fábrica)
+    cliente1.adicionar_conta(conta1)                # associa a conta ao cliente
+
+    cliente1.realizar_transacao(conta1, Deposito(1000))  # deposita R$ 1000,00
+    cliente1.realizar_transacao(conta1, Saque(200))      # saca R$ 200,00 (ok)
+    cliente1.realizar_transacao(conta1, Saque(400))      # saca R$ 400,00 (ok)
+    cliente1.realizar_transacao(conta1, Saque(500))      # tenta sacar R$ 500,00 (vai falhar por saldo insuficiente)
+
+    print("\n=== Histórico de Transações ===")   # separador visual
+    conta1.historico.exibir()                     # imprime o histórico da conta
+
+    print(f"\nSaldo final: R$ {conta1.saldo:.2f}")  # mostra o saldo restante formatado
