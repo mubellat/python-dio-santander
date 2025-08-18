@@ -1,0 +1,2 @@
+2025-08-18 18:05:19.141410 | Função: registrar | Args: valor=200, conta=1 | Retorno: True
+2025-08-18 18:05:19.141680 | Função: registrar | Args: valor=50, conta=1 | Retorno: True
