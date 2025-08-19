@@ -1,0 +1,24 @@
+Conceitos básicos no banco de dados, CRUD:
+Create 
+Read 
+Update
+Delete
+
+Conceito de ACID:
+Atomicidade
+Consistencia
+Isolamento
+Durabilidade
+
+DQL - linguagem de consulta de dados
+DML - linguagem de manipulação de dados
+DDL - linguagem de definição de dados
+DCL - linguagem de controle de dados
+DTL - linguagem de transação de dados
+
+sintax basica:os nomes devem começar com uma letra ou com um caractere de sublinhado
+os nomes podem conter letras, numeros e caracteres de sublinhado
+sensibilidade a maiusculas e minusculas
+ 
+entidades: sao em geral as tabelas
+atributos: caracteristicas das entidades
