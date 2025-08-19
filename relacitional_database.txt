@@ -22,3 +22,15 @@ sensibilidade a maiusculas e minusculas
  
 entidades: sao em geral as tabelas
 atributos: caracteristicas das entidades
+
+tipos de dados:
+inteiro(integer)
+decimal(decimal)
+caractere(character/varchar)
+data/hora(date/time)
+booleano(boolean)
+texto longo(text)
+
+UNIQUE - nao pode haver valores duplicados 
+DEFAULT - define valor padrao caso nenhum valor seja informado
+NOT NULL - nao pode receber valor nulo
