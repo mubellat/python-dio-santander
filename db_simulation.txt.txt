@@ -1,0 +1,53 @@
+CREATE TABLE usuarios (
+    id INT,
+    nome VARCHAR(255) NOT NULL COMMENT "Nome do usuário",
+    email VARCHAR(100) NOT NULL UNIGQUE "Email do usuário",
+    endereco VARCHAR(50) NOT NULL COMMENT "Endereco do usuario",
+    data_nascimento DATE NOT NULL COMMENT "Data de nascimento do usario");
+
+CREATE TABLE viagens.destinos (
+    id INT,
+    nome VARCHAR(255) NOT NULL UNIGQUE COMMENT "Nome do destino",
+    descricao VARCHAR(255) NOT NULL COMMENT "Descricao do destino");
+
+CREATE TABLE viagens.reservas (
+    id INT COMMENT "Identificador unico da reserva"
+    id_usuario INT COMMENT "Referencia ao ID do usuario que fez a reserva",
+    id_destino INT COMMENT "Referencia ao ID do destino da reserva",
+    data DATE COMMENT "Data da reserva",
+    status VARCHAR(255) DEFAULT "pendente COMMENT "Status da reserva (confirmada, pendente, cancelada, etc)");
+
+INSERT INTO usuarios (id, nome, email, data, nascimento, endereco) VALUES (1, "Murilo", "ssz.mu04@gmail.com", "2004-02-24", "Goiânia"):
+
+INSERT INTO destinos (id, nome, descricao) VALUES (1, "Praia do Guarujá", "Ponto turístico"):
+
+INSERT INTO reservas (id, id_usuario, id_destino, status, data) VALUES (1, 1, 1, "pendente", "2025-11-11"):
+ 
+SELECT * FROM usuarios
+WHERE id = 1 OR nome LIKE "%maria%";
+
+UPDATE usuarios
+SET id = 4 
+WHERE email = "teste@teste.com";
+SELECT * FROM usuarios
+
+DELETE FROM destinos
+WHERE nome = "Praia do Rosa";
+
+DROP TABLE destinos;
+
+ALTER TABLE usuarios RENAME usuarios_teste
+
+ALTER TABLE usuarios_teste MODIFY COLUMN endereco VARCHAR(150);
+
+ALTER TABLE usuarios
+MODIFY COLUMN id INT AUTO_INCREMENT,
+ADD PRIMARY KEY (id);
+
+ALTER TABLE reservas
+ADD CONSTRAINT fk_reservas_usuarios,
+FOREIGN KEY(id_usuario) REFERENCES usuarios (id);
+
+SELECT * FROM usuarios
+INNER JOIN reservas rs ON us.id = rs.id_usuario
+INNER JOIN destinos ds ON rs.id_destino = ds.id;
